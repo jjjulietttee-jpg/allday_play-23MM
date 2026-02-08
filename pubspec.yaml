@@ -45,7 +45,7 @@ dependencies:
   # Local Storage
   shared_preferences: ^2.2.2
   
-  # Logging (optional)
+  # Logging: used in lib/main.dart for FlutterError.onError and optional logging
   talker_flutter: ^3.5.0
 
 dev_dependencies:
