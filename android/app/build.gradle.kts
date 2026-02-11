@@ -19,16 +19,6 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file("keystore.jks")
-            storePassword = "newapp"
-            keyAlias = "rioufar48"
-            keyPassword = "newapp"
-            storeType = "jks"
-        }
-    }
-
     defaultConfig {
         applicationId = "com.gchegg.hvhevev"
         minSdk = 25
@@ -39,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Signing with debug keys for testing
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

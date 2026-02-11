@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/audio_service.dart';
 import 'data/repositories/user_repository.dart';
 import 'presentation/bloc/profile_bloc.dart';
 import 'presentation/bloc/profile_event.dart';
@@ -14,9 +15,16 @@ final talker = TalkerFlutter.init();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  print('🚀 App starting...');
+  
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final userRepository = UserRepository(prefs);
+  
+  // Initialize Audio Service
+  print('🎵 Initializing audio service...');
+  await AudioService().init();
+  print('🎵 Audio service ready!');
   
   // Configure Talker for optional logging
   FlutterError.onError = (details) => talker.handle(

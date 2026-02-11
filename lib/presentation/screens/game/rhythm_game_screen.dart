@@ -12,6 +12,7 @@ import '../../widgets/custom_text.dart';
 import '../../widgets/custom_popup.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/audio_service.dart';
 import 'widgets/game_lane.dart';
 import 'widgets/hit_line.dart';
 import 'widgets/game_stats_display.dart';
@@ -19,8 +20,34 @@ import 'widgets/hit_feedback_display.dart';
 import 'widgets/achievement_unlock_popup.dart';
 
 /// Main rhythm game screen
-class RhythmGameScreen extends StatelessWidget {
+class RhythmGameScreen extends StatefulWidget {
   const RhythmGameScreen({super.key});
+
+  @override
+  State<RhythmGameScreen> createState() => _RhythmGameScreenState();
+}
+
+class _RhythmGameScreenState extends State<RhythmGameScreen> {
+  final _audioService = AudioService();
+
+  @override
+  void initState() {
+    super.initState();
+    print('🎮 Game screen initialized');
+    // Запускаем фоновую музыку при старте игры
+    Future.delayed(const Duration(milliseconds: 500), () {
+      print('🎮 Starting background music...');
+      _audioService.playBackgroundMusic();
+    });
+  }
+
+  @override
+  void dispose() {
+    print('🎮 Game screen disposing - stopping music');
+    // Останавливаем музыку при выходе из игры
+    _audioService.stopBackgroundMusic();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,19 +56,22 @@ class RhythmGameScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => RhythmGameBloc(profileBloc: profileBloc)
         ..add(const StartGame()),
-      child: const _RhythmGameView(),
+      child: _RhythmGameView(audioService: _audioService),
     );
   }
 }
 
 class _RhythmGameView extends StatelessWidget {
-  const _RhythmGameView();
+  final AudioService audioService;
+  
+  const _RhythmGameView({required this.audioService});
 
   void _showPauseMenu(BuildContext context) {
     final gameBloc = context.read<RhythmGameBloc>();
     final profileBloc = context.read<ProfileBloc>();
     
     gameBloc.add(const PauseGame());
+    audioService.pauseBackgroundMusic();
     
     CustomPopup.show(
       context,
@@ -56,6 +86,7 @@ class _RhythmGameView extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop();
               gameBloc.add(const ResumeGame());
+              audioService.resumeBackgroundMusic();
             },
             child: const Text('Resume'),
           ),
@@ -65,6 +96,7 @@ class _RhythmGameView extends StatelessWidget {
               // Save current stats before restarting
               profileBloc.add(UpdateProfileWithGameStats(gameBloc.state.stats));
               gameBloc.add(const RestartGame());
+              audioService.resumeBackgroundMusic();
             },
             child: const Text('Restart'),
           ),
@@ -72,6 +104,7 @@ class _RhythmGameView extends StatelessWidget {
             onPressed: () {
               // Save current stats before quitting
               profileBloc.add(UpdateProfileWithGameStats(gameBloc.state.stats));
+              audioService.stopBackgroundMusic();
               Navigator.of(context).pop();
               context.go('/menu');
             },
@@ -234,6 +267,8 @@ class _RhythmGameView extends StatelessWidget {
                                     .where((note) => note.lane == index)
                                     .toList(),
                                 onTap: () {
+                                  // Воспроизводим звук тапа
+                                  audioService.playTapSound();
                                   context.read<RhythmGameBloc>().add(TapLane(index));
                                 },
                                 isHighlighted: state.lastHitLane == index,
